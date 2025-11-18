@@ -2,9 +2,9 @@ import 'package:dio/dio.dart' hide Options;
 import 'package:flutter/foundation.dart';
 import 'package:gravity_sdk/gravity_sdk.dart';
 import 'package:gravity_sdk/src/data/api/gravity_interceptor.dart';
-import 'package:gravity_sdk/src/utils/device_utils.dart';
 import 'package:gravity_sdk/src/utils/logger.dart';
-import 'package:talker_dio_logger/talker_dio_logger.dart';
+import 'package:talker_dio_logger/talker_dio_logger_interceptor.dart';
+import 'package:talker_dio_logger/talker_dio_logger_settings.dart';
 
 import '../../models/external/user.dart';
 import 'content_ids_response.dart';
@@ -13,7 +13,8 @@ import 'content_response.dart';
 class Api {
   final _dio = Dio();
 
-  String get baseUrl => GravitySDK.instance.proxyUrl ?? 'https://ev.stellarlabs.ai/v2';
+  String get baseUrl =>
+      GravitySDK.instance.proxyUrl ?? 'https://ev.stellarlabs.ai/v2';
 
   Api() {
     _dio.options
@@ -47,17 +48,12 @@ class Api {
     required Options options,
     required ContentSettings contentSettings,
   }) async {
-    final device = await DeviceUtils.instance.getDevice();
-
     final data = {
-      'sec': GravitySDK.instance.section,
+      'sec': GravitySDK.instance.settings.section,
       'data': [
-        {
-          'campaignId': campaignId,
-          'option': contentSettings.toJson(),
-        }
+        {'campaignId': campaignId, 'option': contentSettings.toJson()},
       ],
-      'device': device.toJson(),
+      'device': GravitySDK.instance.settings.device.toJson(),
       'user': user?.toJson(),
       'ctx': context.toJson(),
       'options': options.toJson(),
@@ -75,15 +71,12 @@ class Api {
     required Options options,
     required ContentSettings contentSettings,
   }) async {
-    final device = await DeviceUtils.instance.getDevice();
+    final device = GravitySDK.instance.settings.device;
 
     final data = {
-      'sec': GravitySDK.instance.section,
+      'sec': GravitySDK.instance.settings.section,
       'data': [
-        {
-          'selector': selector,
-          'option': contentSettings.toJson(),
-        }
+        {'selector': selector, 'option': contentSettings.toJson()},
       ],
       'device': device.toJson(),
       'user': user?.toJson(),
@@ -101,10 +94,10 @@ class Api {
     required PageContext context,
     required Options options,
   }) async {
-    final device = await DeviceUtils.instance.getDevice();
+    final device = GravitySDK.instance.settings.device;
 
     final data = {
-      'sec': GravitySDK.instance.section,
+      'sec': GravitySDK.instance.settings.section,
       'data': dataArray,
       'device': device.toJson(),
       'user': user?.toJson(),
@@ -116,11 +109,15 @@ class Api {
     return ContentResponse.fromJson(response.data);
   }
 
-  Future<CampaignIdsResponse> visit(User? user, PageContext context, Options options) async {
-    final device = await DeviceUtils.instance.getDevice();
+  Future<CampaignIdsResponse> visit(
+    User? user,
+    PageContext context,
+    Options options,
+  ) async {
+    final device = GravitySDK.instance.settings.device;
 
     final data = {
-      'sec': GravitySDK.instance.section,
+      'sec': GravitySDK.instance.settings.section,
       'device': device.toJson(),
       'type': 'screenview',
       'user': user?.toJson(),
@@ -132,17 +129,18 @@ class Api {
     return CampaignIdsResponse.fromJson(response.data);
   }
 
-  Future<CampaignIdsResponse> event(List<TriggerEvent> events, User? user, PageContext context, Options options) async {
-    final device = await DeviceUtils.instance.getDevice();
+  Future<CampaignIdsResponse> event(
+    List<TriggerEvent> events,
+    User? user,
+    PageContext context,
+    Options options,
+  ) async {
+    final device = GravitySDK.instance.settings.device;
 
     final data = {
-      'sec': GravitySDK.instance.section,
+      'sec': GravitySDK.instance.settings.section,
       'device': device.toJson(),
-      'data': events
-          .map(
-            (e) => e.toJson(),
-          )
-          .toList(),
+      'data': events.map((e) => e.toJson()).toList(),
       'user': user?.toJson(),
       'ctx': context.toJson(),
       'options': options.toJson(),
